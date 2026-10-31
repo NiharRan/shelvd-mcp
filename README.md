@@ -1,6 +1,12 @@
-# shelvd-mcp
+# shelvd-mcp: idea parking MCP server for Claude Code
 
-Park ideas from your AI tool and pick them up later. Shelvd is a local MCP server: your ideas stay in a JSON file on your machine, and nothing is sent anywhere.
+[![npm version](https://img.shields.io/npm/v/shelvd-mcp)](https://www.npmjs.com/package/shelvd-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/shelvd-mcp)](https://www.npmjs.com/package/shelvd-mcp)
+[![license](https://img.shields.io/npm/l/shelvd-mcp)](LICENSE)
+
+Park ideas from your AI tool and pick them up later. Shelvd is a local, private [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for Claude Code, Cursor and other MCP clients: a to-do and idea backlog that lives in your AI assistant. Your ideas stay in a JSON file on your machine, and nothing is sent anywhere.
+
+**npm:** [npmjs.com/package/shelvd-mcp](https://www.npmjs.com/package/shelvd-mcp)
 
 ## Install
 
@@ -56,3 +62,10 @@ If the file is corrupt, Shelvd leaves it untouched and reports the error. Fix or
 
 - Two clients writing in the same millisecond can drop one write (no file lock).
 - Phone reminders (`nagEveryMinutes`) need the hosted Pro version.
+
+## Links
+
+- npm: https://www.npmjs.com/package/shelvd-mcp
+- Source and issues: https://github.com/NiharRan/shelvd-mcp
+
+Keywords: MCP server, Model Context Protocol, Claude Code, idea parking, idea tracker, backlog, to-do, reminders, snooze, notes, local-first, privacy.
