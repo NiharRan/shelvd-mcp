@@ -121,8 +121,10 @@ export async function importIdeas(store: Store): Promise<{ imported: number; ski
 }
 
 function openBrowser(url: string) {
+  if (!/^https?:\/\//.test(url)) return;
+  // No shell: cmd.exe would treat "&" in the URL as a command separator.
   const [cmd, args] =
-    platform() === "darwin" ? ["open", [url]] : platform() === "win32" ? ["cmd", ["/c", "start", "", url]] : ["xdg-open", [url]];
+    platform() === "darwin" ? ["open", [url]] : platform() === "win32" ? ["rundll32", ["url.dll,FileProtocolHandler", url]] : ["xdg-open", [url]];
   try {
     spawn(cmd, args, { stdio: "ignore", detached: true }).on("error", () => {}).unref();
   } catch {
