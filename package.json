@@ -1,6 +1,6 @@
 {
   "name": "shelvd-mcp",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "license": "MIT",
   "description": "Shelvd: park ideas from your AI tool. Local, private MCP server.",
   "repository": {

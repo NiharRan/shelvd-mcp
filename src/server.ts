@@ -13,7 +13,7 @@ import {
 import pkg from "../package.json";
 import { Store } from "./store.js";
 import * as t from "./tools.js";
-import { clearLogin, forward, loginStatus, readLink, startLogin, disconnect } from "./link.js";
+import { accessToken, clearLogin, forward, loginStatus, readLink, startLogin, disconnect } from "./link.js";
 
 function wrap(run: () => ToolResult, withData = true) {
   let r: ToolResult;
@@ -111,7 +111,8 @@ export function buildServer(store: Store): McpServer {
       clearLogin(); // reported once; the next call starts fresh
       return text(st.message, st.state === "failed");
     }
-    if (!st && readLink()) return text("Already linked to shelvd.dev. Use disconnect_website to unlink.");
+    // A dead refresh token leaves link.json behind: fall through to a fresh login instead of claiming "linked".
+    if (!st && readLink() && (await accessToken().then(() => true, () => false))) return text("Already linked to shelvd.dev. Use disconnect_website to unlink.");
     const p = st ?? startLogin(store);
     const url = p.url || (await new Promise<string>((r) => setTimeout(() => r(p.url), 1500)));
     return text(url ? `Open this link to log in: ${url}\nThen ask me to check the connection.` : "Starting login, call me again in a moment.");
