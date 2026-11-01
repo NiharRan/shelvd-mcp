@@ -2,6 +2,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { buildServer } from "./server.js";
 import { Store } from "./store.js";
 import { dueSummary } from "./tools.js";
+import { disconnect, loginStatus, startLogin } from "./link.js";
 
 const HOOK = JSON.stringify(
   { hooks: { SessionStart: [{ hooks: [{ type: "command", command: "npx -y shelvd-mcp due" }] }] } },
@@ -20,6 +21,16 @@ if (cmd === "due") {
   } catch (e) {
     console.log(`shelvd: ${e instanceof Error ? e.message : e}`);
   }
+} else if (cmd === "connect") {
+  const p = startLogin(store);
+  await new Promise((r) => setTimeout(r, 1500));
+  console.log(p.url ? `Log in here (opened in your browser):\n${p.url}` : "Starting login...");
+  while (loginStatus()?.state === "waiting") await new Promise((r) => setTimeout(r, 500));
+  console.log(loginStatus()?.message);
+  process.exit(loginStatus()?.state === "done" ? 0 : 1);
+} else if (cmd === "disconnect") {
+  await disconnect();
+  console.log("Disconnected. Using local ideas again.");
 } else if (cmd === "hook") {
   console.log(`Add this to ~/.claude/settings.json (Shelvd never edits it for you):\n\n${HOOK}`);
 } else {
