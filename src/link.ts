@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import pkg from "../package.json";
 import type { Store } from "./store.js";
 
 export const ORIGIN = (process.env.SHELVD_URL ?? "https://www.shelvd.dev").replace(/\/$/, "");
@@ -81,7 +82,7 @@ export async function accessToken(): Promise<{ token: string; link: Link }> {
 /** Call a hosted tool. Stateless: one short-lived client per call. */
 export async function forward(name: string, args: Record<string, unknown>) {
   const { token, link } = await accessToken();
-  const client = new Client({ name: "shelvd-mcp", version: "0.3.0" });
+  const client = new Client({ name: "shelvd-mcp", version: pkg.version });
   await client.connect(
     new StreamableHTTPClientTransport(new URL(`${link.origin}/api/mcp`), { requestInit: { headers: { Authorization: `Bearer ${token}` } } }),
   );

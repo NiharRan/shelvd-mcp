@@ -10,6 +10,7 @@ import {
   updateIdeaInput,
   type ToolResult,
 } from "./shared.js";
+import pkg from "../package.json";
 import { Store } from "./store.js";
 import * as t from "./tools.js";
 import { clearLogin, forward, loginStatus, readLink, startLogin, disconnect } from "./link.js";
@@ -49,7 +50,7 @@ export function buildServer(store: Store): McpServer {
     // corrupt file: tools report it; startup stays quiet
   }
 
-  const s = new McpServer({ name: "shelvd", version: "0.2.0" }, { instructions });
+  const s = new McpServer({ name: "shelvd", version: pkg.version }, { instructions });
 
   s.registerTool(TOOLS.park, {
     description: "Park an idea for later, with an optional due date (natural language ok), project and context.",
