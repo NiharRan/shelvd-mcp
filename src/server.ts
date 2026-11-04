@@ -54,6 +54,7 @@ export function buildServer(store: Store): McpServer {
   const s = new McpServer({ name: "shelvd", version: pkg.version }, { instructions });
 
   s.registerTool(TOOLS.park, {
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     description: "Park an idea for later, with an optional due date (natural language ok), project and context. The AI editor, repo, branch and changed files are captured automatically.",
     inputSchema: parkIdeaInput,
   }, (a) => {
@@ -62,51 +63,61 @@ export function buildServer(store: Store): McpServer {
   });
 
   s.registerTool(TOOLS.list, {
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "List parked ideas as a markdown table. Show the table to the user exactly as returned; do not reformat or drop dates and ids.",
     inputSchema: listIdeasInput,
   }, (a) => run(TOOLS.list, a, () => wrap(() => t.listIdeas(store, a), false)));
 
   s.registerTool(TOOLS.get, {
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Get one idea with full context, notes and history.",
     inputSchema: idInput,
   }, (a) => run(TOOLS.get, { id: a.id }, () => wrap(() => t.getIdea(store, a.id))));
 
   s.registerTool(TOOLS.complete, {
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Mark an idea done.",
     inputSchema: idInput,
   }, (a) => run(TOOLS.complete, { id: a.id }, () => wrap(() => t.completeIdea(store, a.id))));
 
   s.registerTool(TOOLS.snooze, {
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     description: "Move an idea's due date later. Give `until` (date text) or `minutes`.",
     inputSchema: snoozeIdeaInput,
   }, (a) => run(TOOLS.snooze, a, () => wrap(() => t.snoozeIdea(store, a))));
 
   s.registerTool(TOOLS.delete, {
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     description: "Permanently delete ONE idea by exact id. Confirm with the user first. Never guess an id from a vague title; list ideas to find it.",
     inputSchema: idInput,
   }, (a) => run(TOOLS.delete, { id: a.id }, () => wrap(() => t.deleteIdea(store, a.id))));
 
   s.registerTool(TOOLS.clear, {
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     description: "Delete many ideas: scope 'done', 'all' or 'project:<name>'. Without confirm=true it only previews. Show the preview to the user and call again with confirm=true only after they approve.",
     inputSchema: clearIdeasInput,
   }, (a) => run(TOOLS.clear, a, () => wrap(() => t.clearIdeas(store, a))));
 
   s.registerTool(TOOLS.update, {
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     description: "Edit an idea: title, details, project, due date, or append a `note`. Only the fields given change.",
     inputSchema: updateIdeaInput,
   }, (a) => run(TOOLS.update, a, () => wrap(() => t.updateIdea(store, a))));
 
   s.registerTool(TOOLS.search, {
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Search ideas by text in title, details, project and notes. Shows a markdown table; show it as returned.",
     inputSchema: searchIdeasInput,
   }, (a) => run(TOOLS.search, a, () => wrap(() => t.searchIdeas(store, a), false)));
 
   s.registerTool(TOOLS.start, {
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Load an idea's details, context and notes as a brief so you can start work on it.",
     inputSchema: idInput,
   }, (a) => run(TOOLS.start, { id: a.id }, () => wrap(() => t.startIdea(store, a.id))));
 
   s.registerTool("connect_website", {
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     description: "Link this Shelvd to the user's shelvd.dev account (dashboard, calendar, phone nagging). Opens a browser login, then imports local ideas. Call again afterwards to check progress.",
     inputSchema: {},
   }, async () => {
@@ -123,6 +134,7 @@ export function buildServer(store: Store): McpServer {
   });
 
   s.registerTool("disconnect_website", {
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Unlink from shelvd.dev. Goes back to the local ideas file, which was never deleted.",
     inputSchema: {},
   }, async () => {
