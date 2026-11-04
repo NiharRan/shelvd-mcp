@@ -4,7 +4,8 @@ import { PROVIDER_LABEL, normalizeProvider, type ParkIdeaInput } from "./shared.
 
 const git = (...args: string[]) => {
   try {
-    return execFileSync("git", args, { encoding: "utf8", timeout: 2000, stdio: ["ignore", "pipe", "ignore"] }).trim();
+    // trimEnd only: porcelain lines start with a significant space
+    return execFileSync("git", args, { encoding: "utf8", timeout: 2000, stdio: ["ignore", "pipe", "ignore"] }).trimEnd();
   } catch {
     return ""; // not a repo, git missing, or slow: context is best effort
   }
@@ -31,11 +32,9 @@ export function enrichContext(input: ParkIdeaInput, client?: { name?: string }, 
   if (top) {
     c.repo ??= repoSlug(cwdGit("remote", "get-url", "origin")) || basename(top);
     c.branch ??= cwdGit("branch", "--show-current") || undefined;
-    c.files ??= cwdGit("status", "--porcelain")
-      .split("\n")
-      .map((l) => l.slice(3).split(" -> ").pop()!.trim())
-      .filter(Boolean)
-      .slice(0, 20);
+    const dirty = cwdGit("status", "--porcelain").split("\n").filter(Boolean).map((l) => l.slice(3).split(" -> ").pop()!.trim());
+    // clean tree: fall back to the last commit's files
+    c.files ??= (dirty.length ? dirty : cwdGit("show", "--name-only", "--format=", "HEAD").split("\n").filter(Boolean)).slice(0, 20);
     if (!c.files.length) delete c.files;
   }
   return { ...input, project: input.project ?? (top ? basename(top) : undefined), context: c };

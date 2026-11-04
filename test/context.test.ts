@@ -50,6 +50,10 @@ describe("enrichContext", () => {
     expect(r.project).toBe("P");
     expect(r.context).toMatchObject({ branch: "mine", files: ["a"], provider: "cursor" });
   });
+  it("clean tree falls back to the last commit's files", () => {
+    const g = fakeGit({ "rev-parse --show-toplevel": "/w/t", "show --name-only --format= HEAD": "a.ts\nb.ts" });
+    expect(enrichContext({ title: "x" }, undefined, g).context?.files).toEqual(["a.ts", "b.ts"]);
+  });
   it("outside a repo keeps only editor info", () => {
     const r = enrichContext({ title: "x" }, { name: "cursor" }, fakeGit({}));
     expect(r.project).toBeUndefined();
