@@ -94,9 +94,9 @@ export async function forward(name: string, args: Record<string, unknown>) {
 }
 
 /** Send local ideas in chunks. Returns totals; throws if a chunk fails twice, leaving importedFor unchanged. */
-export async function importIdeas(store: Store): Promise<{ imported: number; skipped: number }> {
+export async function importIdeas(store: Store): Promise<{ imported: number; skipped: number; capped: number }> {
   const ideas = store.read();
-  const total = { imported: 0, skipped: 0 };
+  const total = { imported: 0, skipped: 0, capped: 0 };
   for (let i = 0; i < ideas.length; i += CHUNK) {
     const body = JSON.stringify({ ideas: ideas.slice(i, i + CHUNK) });
     let done = false;
@@ -111,6 +111,7 @@ export async function importIdeas(store: Store): Promise<{ imported: number; ski
         const j = (await r.json()) as typeof total;
         total.imported += j.imported;
         total.skipped += j.skipped;
+        total.capped += j.capped ?? 0;
         done = true;
       }
     }
@@ -192,7 +193,7 @@ export function startLogin(store: Store): Pending {
       });
       reply("Shelvd is connected. You can close this tab and go back to your AI.");
       const r = await importIdeas(store);
-      finish("done", `Linked. Imported ${r.imported} ideas, ${r.skipped} skipped. Everything now syncs with shelvd.dev.`);
+      finish("done", `Linked. Imported ${r.imported} ideas, ${r.skipped} skipped. Everything now syncs with shelvd.dev.${r.capped ? ` ${r.capped} ideas were not uploaded: the free plan holds 50 open ideas. Upgrade to Pro for unlimited: https://shelvd.dev/pro` : ""}`);
     } catch (e) {
       if (!res.headersSent) reply("Login failed. You can close this tab.");
       finish("failed", e instanceof Error ? e.message : String(e));
