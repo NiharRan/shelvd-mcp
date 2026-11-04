@@ -1,5 +1,6 @@
 import {
   UPGRADE_URL,
+  normalizeProvider,
   type ClearIdeasInput,
   type Idea,
   type ListIdeasInput,
@@ -76,6 +77,7 @@ export function parkIdea(store: Store, input: ParkIdeaInput, now = new Date()): 
       dueAt: due?.toISOString() ?? null,
       nagEveryMinutes: input.nagEveryMinutes,
       context: input.context,
+      provider: input.context?.provider ?? normalizeProvider(input.context?.client),
       notes: [],
       history: [{ at, event: "parked" }],
       completedAt: null,
@@ -95,7 +97,7 @@ export function parkIdea(store: Store, input: ParkIdeaInput, now = new Date()): 
 
 export function listIdeas(store: Store, input: ListIdeasInput, now = new Date()): ToolResult {
   const all = store.read();
-  let ideas = all;
+  let ideas = input.provider ? all.filter((i) => i.provider === input.provider) : all;
   if (input.project) {
     const p = input.project.toLowerCase();
     ideas = ideas.filter((i) => i.project.toLowerCase() === p);
@@ -185,6 +187,7 @@ export function searchIdeas(store: Store, input: SearchIdeasInput, now = new Dat
   const q = input.query.toLowerCase();
   const status = input.status ?? "all";
   const hits = store.read().filter((i) => {
+    if (input.provider && i.provider !== input.provider) return false;
     if (status !== "all" && (status === "due" ? !["overdue", "due"].includes(label(i, now)) : i.status !== status)) return false;
     return [i.title, i.details ?? "", i.project, ...i.notes].some((f) => f.toLowerCase().includes(q));
   });

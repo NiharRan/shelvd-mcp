@@ -16,6 +16,26 @@ export const TOOLS = {
   start: "start_idea",
 } as const;
 
+export const PROVIDERS = ["claude-code", "cursor", "windsurf", "codex", "vscode", "claude-ai", "other"] as const;
+export type Provider = (typeof PROVIDERS)[number];
+
+export const PROVIDER_LABEL: Record<Provider, string> = {
+  "claude-code": "Claude Code", cursor: "Cursor", windsurf: "Windsurf", codex: "Codex", vscode: "VS Code", "claude-ai": "Claude.ai", other: "Other",
+};
+
+/** Map an MCP clientInfo name (or any editor label) to a stable provider slug. null = unknown. */
+export function normalizeProvider(name?: string | null): Provider | null {
+  const n = name?.trim().toLowerCase();
+  if (!n) return null;
+  if (n.includes("claude-ai") || n.includes("claude.ai")) return "claude-ai";
+  if (n.includes("claude")) return "claude-code";
+  if (n.includes("cursor")) return "cursor";
+  if (n.includes("windsurf") || n.includes("codeium")) return "windsurf";
+  if (n.includes("codex")) return "codex";
+  if (n.includes("vscode") || n.includes("visual studio code") || n.includes("copilot")) return "vscode";
+  return "other";
+}
+
 export const parkIdeaInput = {
   title: z.string().min(1).max(200),
   details: z.string().max(5000).optional(),
@@ -25,6 +45,8 @@ export const parkIdeaInput = {
   context: z
     .object({
       source: z.string().optional(),
+      client: z.string().max(80).optional().describe("AI editor display name, e.g. 'Claude Code'"),
+      provider: z.enum(PROVIDERS).optional(),
       repo: z.string().optional(),
       branch: z.string().optional(),
       files: z.array(z.string()).max(20).optional(),
@@ -35,6 +57,7 @@ export const parkIdeaInput = {
 
 export const listIdeasInput = {
   project: z.string().optional(),
+  provider: z.enum(PROVIDERS).optional().describe("Only ideas parked from this AI editor"),
   status: z.enum(["parked", "due", "snoozed", "done", "all"]).optional(),
   from: z.string().optional(),
   to: z.string().optional(),
@@ -65,6 +88,7 @@ export const updateIdeaInput = {
 
 export const searchIdeasInput = {
   query: z.string().min(1),
+  provider: listIdeasInput.provider,
   status: listIdeasInput.status,
   limit: listIdeasInput.limit,
 };
@@ -87,6 +111,7 @@ export interface Idea {
   dueAt: string | null; // UTC ISO
   nagEveryMinutes?: number;
   context?: ParkIdeaInput["context"];
+  provider?: Provider | null;
   notes: string[];
   history: { at: string; event: string }[];
   completedAt: string | null;

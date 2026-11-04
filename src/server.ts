@@ -13,6 +13,7 @@ import {
 import pkg from "../package.json";
 import { Store } from "./store.js";
 import * as t from "./tools.js";
+import { enrichContext } from "./context.js";
 import { accessToken, clearLogin, forward, loginStatus, readLink, startLogin, disconnect } from "./link.js";
 
 function wrap(run: () => ToolResult, withData = true) {
@@ -53,9 +54,12 @@ export function buildServer(store: Store): McpServer {
   const s = new McpServer({ name: "shelvd", version: pkg.version }, { instructions });
 
   s.registerTool(TOOLS.park, {
-    description: "Park an idea for later, with an optional due date (natural language ok), project and context.",
+    description: "Park an idea for later, with an optional due date (natural language ok), project and context. The AI editor, repo, branch and changed files are captured automatically.",
     inputSchema: parkIdeaInput,
-  }, (a) => run(TOOLS.park, a, () => wrap(() => t.parkIdea(store, a))));
+  }, (a) => {
+    const b = enrichContext(a, s.server.getClientVersion());
+    return run(TOOLS.park, b, () => wrap(() => t.parkIdea(store, b)));
+  });
 
   s.registerTool(TOOLS.list, {
     description: "List parked ideas as a markdown table. Show the table to the user exactly as returned; do not reformat or drop dates and ids.",
